@@ -55,3 +55,6 @@ secrets/
 # Logs
 *.log
 *.hprof
+
+# Claude Code agent worktrees
+.claude/

@@ -4,6 +4,26 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
+
+/**
+ * A deadline. Date-only deadlines are stored as a calendar date and resolved against the current time
+ * zone, so "due Friday" stays Friday after travelling; timed deadlines are absolute instants.
+ */
+sealed interface Due {
+    fun deadline(zone: ZoneId): Instant
+    fun localDate(zone: ZoneId): LocalDate
+
+    data class OnDate(val date: LocalDate) : Due {
+        override fun deadline(zone: ZoneId): Instant = date.plusDays(1).atStartOfDay(zone).toInstant().minusSeconds(1)
+        override fun localDate(zone: ZoneId) = date
+    }
+
+    data class At(val instant: Instant) : Due {
+        override fun deadline(zone: ZoneId) = instant
+        override fun localDate(zone: ZoneId): LocalDate = instant.atZone(zone).toLocalDate()
+    }
+}
 
 enum class Priority(val label: String, val weight: Int) {
     CRITICAL("Critical", 100),
@@ -51,9 +71,7 @@ data class Task(
     val priority: Priority = Priority.MEDIUM,
     val importance: Importance = Importance.NORMAL,
     val createdAt: Instant,
-    val dueAt: Instant? = null,
-    /** False when the user picked only a date; the task is then due by the end of that day. */
-    val dueHasTime: Boolean = false,
+    val due: Due? = null,
     val estimatedMinutes: Int? = null,
     val completedAt: Instant? = null,
     val seriesId: String? = null,
@@ -66,6 +84,9 @@ data class Task(
     val updatedAt: Instant = createdAt,
 ) {
     val isCompleted: Boolean get() = completedAt != null
+    fun deadline(zone: ZoneId): Instant? = due?.deadline(zone)
+    fun dueDate(zone: ZoneId): LocalDate? = due?.localDate(zone)
+    fun isOverdue(now: Instant, zone: ZoneId): Boolean = !isCompleted && deadline(zone)?.isBefore(now) == true
     fun isMit(today: LocalDate): Boolean = mitDate == today
     fun isSnoozed(now: Instant): Boolean = snoozedUntil?.isAfter(now) == true
 }
