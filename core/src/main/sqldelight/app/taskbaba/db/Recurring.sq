@@ -1,0 +1,26 @@
+CREATE TABLE recurring_series (
+  id TEXT NOT NULL PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  category TEXT NOT NULL,
+  priority TEXT NOT NULL,
+  importance TEXT NOT NULL DEFAULT 'NORMAL',
+  estimated_minutes INTEGER,
+  rule TEXT NOT NULL,
+  time_of_day_minutes INTEGER,
+  start_date TEXT NOT NULL,
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at INTEGER NOT NULL
+);
+
+selectAllSeries:
+SELECT * FROM recurring_series;
+
+upsertSeries:
+INSERT OR REPLACE INTO recurring_series VALUES ?;
+
+deactivateSeries:
+UPDATE recurring_series SET active = 0 WHERE id = ?;
+
+deleteAllSeries:
+DELETE FROM recurring_series;

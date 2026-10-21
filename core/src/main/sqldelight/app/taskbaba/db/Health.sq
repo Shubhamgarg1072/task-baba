@@ -1,0 +1,46 @@
+CREATE TABLE health_event (
+  id TEXT NOT NULL PRIMARY KEY,
+  type TEXT NOT NULL,
+  scheduled_at INTEGER NOT NULL,
+  delivered_at INTEGER,
+  outcome TEXT NOT NULL,
+  responded_at INTEGER,
+  local_date TEXT NOT NULL
+);
+CREATE INDEX health_event_date ON health_event(local_date);
+
+CREATE TABLE reminder_state (
+  type TEXT NOT NULL PRIMARY KEY,
+  next_due_at INTEGER,
+  last_fired_at INTEGER
+);
+
+insertEvent:
+INSERT OR REPLACE INTO health_event VALUES ?;
+
+eventById:
+SELECT * FROM health_event WHERE id = ?;
+
+eventsForDate:
+SELECT * FROM health_event WHERE local_date = ? ORDER BY scheduled_at;
+
+eventsBetweenDates:
+SELECT * FROM health_event WHERE local_date >= ? AND local_date <= ? ORDER BY scheduled_at;
+
+updateOutcome:
+UPDATE health_event SET outcome = ?, responded_at = ? WHERE id = ?;
+
+deleteEventsForDate:
+DELETE FROM health_event WHERE local_date = ?;
+
+deleteAllEvents:
+DELETE FROM health_event;
+
+allStates:
+SELECT * FROM reminder_state;
+
+upsertState:
+INSERT OR REPLACE INTO reminder_state VALUES ?;
+
+deleteAllStates:
+DELETE FROM reminder_state;
