@@ -55,3 +55,7 @@ secrets/
 # Logs
 *.log
 *.hprof
+
+# Python
+__pycache__/
+*.pyc
