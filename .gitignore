@@ -2,7 +2,7 @@
 .DS_Store
 .AppleDouble
 .LSOverride
-Icon?
+Icon[]
 ._*
 
 # Gradle / Kotlin / IDE
