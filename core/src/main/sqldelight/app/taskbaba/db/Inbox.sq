@@ -1,0 +1,70 @@
+-- Items fetched from authorized integrations (Jira, Slack, Microsoft 365). Kept only for the
+-- configured retention window. "status" is Task Baba's local triage state, never the remote read state.
+CREATE TABLE inbox_item (
+  id TEXT NOT NULL PRIMARY KEY,
+  source TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  sender TEXT NOT NULL DEFAULT '',
+  channel TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL,
+  snippet TEXT NOT NULL DEFAULT '',
+  url TEXT,
+  received_at INTEGER NOT NULL,
+  auto_priority TEXT NOT NULL,
+  user_priority TEXT,
+  status TEXT NOT NULL DEFAULT 'NEW',
+  snoozed_until INTEGER,
+  linked_task_id TEXT,
+  fetched_at INTEGER NOT NULL,
+  matched_rule TEXT,
+  mentions_me INTEGER NOT NULL DEFAULT 0,
+  is_direct INTEGER NOT NULL DEFAULT 0,
+  delivery TEXT NOT NULL DEFAULT 'NONE'
+);
+
+-- Duplicate suppression: the same remote message is stored once no matter how often it is polled.
+CREATE UNIQUE INDEX inbox_source_external ON inbox_item(source, external_id);
+CREATE INDEX inbox_received ON inbox_item(received_at);
+
+selectAllItems:
+SELECT * FROM inbox_item ORDER BY received_at DESC;
+
+itemById:
+SELECT * FROM inbox_item WHERE id = ?;
+
+itemBySourceExternal:
+SELECT * FROM inbox_item WHERE source = ? AND external_id = ?;
+
+insertItem:
+INSERT OR IGNORE INTO inbox_item VALUES ?;
+
+updateStatus:
+UPDATE inbox_item SET status = ?, snoozed_until = ? WHERE id = ?;
+
+setUserPriority:
+UPDATE inbox_item SET user_priority = ? WHERE id = ?;
+
+linkTask:
+UPDATE inbox_item SET linked_task_id = ? WHERE id = ?;
+
+setDelivery:
+UPDATE inbox_item SET delivery = ? WHERE id = ?;
+
+heldItems:
+SELECT * FROM inbox_item WHERE delivery = 'HELD' AND status = 'NEW' ORDER BY received_at DESC;
+
+wakeSnoozed:
+UPDATE inbox_item SET status = 'NEW', snoozed_until = NULL WHERE status = 'SNOOZED' AND snoozed_until <= ?;
+
+purgeOlderThan:
+DELETE FROM inbox_item WHERE received_at < ?;
+
+deleteBySource:
+DELETE FROM inbox_item WHERE source = ?;
+
+deleteAllItems:
+DELETE FROM inbox_item;
+
+countBySource:
+SELECT source, COUNT(*) FROM inbox_item GROUP BY source;
