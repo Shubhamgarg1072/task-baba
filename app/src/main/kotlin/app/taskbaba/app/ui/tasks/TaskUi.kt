@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -57,7 +58,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
@@ -256,10 +259,10 @@ fun QuickAddField(app: AppController, defaultDue: LocalDate?, modifier: Modifier
     }
     OutlinedTextField(
         value = text, onValueChange = { text = it }, modifier = modifier.fillMaxWidth().onPreviewKeyEvent {
-            if (it.key == Key.Enter && it.type == androidx.compose.ui.input.key.KeyEventType.KeyDown) { submit(); true } else false
+            if (it.key == Key.Enter && it.type == KeyEventType.KeyDown) { submit(); true } else false
         },
         placeholder = { Text(autoFocusHint, color = Baba.colors.textMuted) }, singleLine = true,
-        leadingIcon = { Icon(Icons.Outlined.Search.takeIf { false } ?: Icons.Filled.Check, null, tint = Baba.colors.textMuted.copy(alpha = 0.5f)) },
+        leadingIcon = { Icon(Icons.Filled.Add, null, tint = Baba.colors.textMuted) },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(onDone = { submit() }),
         shape = RoundedCornerShape(10.dp), colors = babaFieldColors(), textStyle = MaterialTheme.typography.bodyLarge,
     )

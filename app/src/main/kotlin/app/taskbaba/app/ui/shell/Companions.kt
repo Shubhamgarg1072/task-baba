@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowDraggableArea
+import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
 import app.taskbaba.app.AppController
@@ -43,6 +43,7 @@ import app.taskbaba.app.ui.tasks.QuickAddField
 import app.taskbaba.app.ui.tasks.rememberTasks
 import app.taskbaba.app.ui.theme.Baba
 import app.taskbaba.app.ui.theme.BabaTheme
+import app.taskbaba.core.model.HealthOutcome
 import app.taskbaba.core.stats.StatsCalculator
 import app.taskbaba.core.tasks.TaskService
 import kotlinx.coroutines.flow.debounce
@@ -107,7 +108,7 @@ fun ApplicationScope.BabaTray(app: AppController, aiStatus: String?, inboxCount:
                 enabled = false, onClick = {},
             )
             app.core.pendingHealth().lastOrNull()?.let { e ->
-                Item("Done: ${e.type.label}", onClick = { app.core.respondHealth(e.id, app.taskbaba.core.model.HealthOutcome.DONE) })
+                Item("Done: ${e.type.label}", onClick = { app.core.respondHealth(e.id, HealthOutcome.DONE) })
             }
             Menu("Snooze reminders") {
                 Item("For 30 minutes", onClick = { app.core.pauseAll(Duration.ofMinutes(30)) })
