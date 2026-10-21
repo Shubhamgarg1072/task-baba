@@ -57,6 +57,7 @@ import app.taskbaba.core.stats.StatsCalculator
 import app.taskbaba.core.tasks.SortMode
 import app.taskbaba.core.tasks.TaskService
 import app.taskbaba.core.tasks.TaskView
+import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -234,9 +235,6 @@ fun NotificationPermissionCard(app: AppController) {
         else -> Unit
     }
 }
-
-private fun kotlinx.coroutines.CoroutineScope.launch(block: suspend kotlinx.coroutines.CoroutineScope.() -> Unit) =
-    kotlinx.coroutines.launch(this, block = block)
 
 @Composable
 fun ProgressCard(done: Int, planned: Int, pct: Int, streak: Int, best: Int, overdue: Int, goal: Int, app: AppController) {
