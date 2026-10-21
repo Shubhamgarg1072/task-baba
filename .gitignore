@@ -1,0 +1,57 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Gradle / Kotlin / IDE
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+.kotlin/
+out/
+.idea/
+*.iml
+local.properties
+
+# Native helper build output
+native/.build/
+native/build/
+*.app
+*.dmg
+
+# Local data — never commit personal tasks, notification history, or databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite-*
+TaskBaba-data/
+
+# Model weights and downloads
+*.gguf
+*.safetensors
+*.bin
+*.part
+*.partial
+models/
+downloads/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+client_secret*.json
+credentials*.json
+service-account*.json
+token*.json
+secrets/
+*.local.json
+
+# Logs
+*.log
+*.hprof

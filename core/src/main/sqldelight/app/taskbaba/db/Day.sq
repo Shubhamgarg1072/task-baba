@@ -1,0 +1,30 @@
+-- Frozen daily summaries. Written at rollover so history survives task edits; never deleted by the daily reset.
+CREATE TABLE day_record (
+  date TEXT NOT NULL PRIMARY KEY,
+  planned INTEGER NOT NULL,
+  completed INTEGER NOT NULL,
+  priority_planned INTEGER NOT NULL,
+  priority_completed INTEGER NOT NULL,
+  overdue INTEGER NOT NULL,
+  mit_completed INTEGER NOT NULL,
+  health_delivered INTEGER NOT NULL,
+  health_done INTEGER NOT NULL,
+  health_skipped INTEGER NOT NULL,
+  goal_met INTEGER NOT NULL,
+  summary TEXT NOT NULL DEFAULT ''
+);
+
+allDays:
+SELECT * FROM day_record ORDER BY date;
+
+dayByDate:
+SELECT * FROM day_record WHERE date = ?;
+
+upsertDay:
+INSERT OR REPLACE INTO day_record VALUES ?;
+
+deleteDay:
+DELETE FROM day_record WHERE date = ?;
+
+deleteAllDays:
+DELETE FROM day_record;

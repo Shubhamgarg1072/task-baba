@@ -1,0 +1,42 @@
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+
+plugins {
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.compose)
+}
+
+kotlin { jvmToolchain(17) }
+
+dependencies {
+    implementation(project(":core"))
+    implementation(compose.desktop.currentOs)
+    implementation(compose.material3)
+    implementation(compose.materialIconsExtended)
+    implementation(libs.coroutines.swing)
+}
+
+compose.desktop {
+    application {
+        mainClass = "app.taskbaba.app.MainKt"
+        nativeDistributions {
+            targetFormats(TargetFormat.Dmg)
+            packageName = "Task Baba"
+            packageVersion = "1.0.0"
+            description = "Get your tasks done, my child. Karma is watching."
+            copyright = "© 2026 Task Baba contributors. MIT License."
+            modules("java.net.http", "java.sql", "jdk.httpserver", "jdk.crypto.ec")
+            macOS {
+                bundleID = "app.taskbaba.TaskBaba"
+                appCategory = "public.app-category.productivity"
+                infoPlist {
+                    extraKeysRawXml = """
+                        <key>LSUIElement</key><false/>
+                        <key>NSUserNotificationAlertStyle</key><string>alert</string>
+                    """.trimIndent()
+                }
+            }
+        }
+    }
+}

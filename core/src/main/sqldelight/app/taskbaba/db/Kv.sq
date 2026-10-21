@@ -1,0 +1,33 @@
+CREATE TABLE kv (
+  key TEXT NOT NULL PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+getValue:
+SELECT value FROM kv WHERE key = ?;
+
+putValue:
+INSERT OR REPLACE INTO kv VALUES (?, ?);
+
+deleteValue:
+DELETE FROM kv WHERE key = ?;
+
+-- Remembers recently shown monk lines so the engine can avoid repeats across restarts.
+CREATE TABLE monk_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  message_id TEXT NOT NULL,
+  event TEXT NOT NULL,
+  shown_at INTEGER NOT NULL
+);
+
+recentMonk:
+SELECT message_id FROM monk_history ORDER BY id DESC LIMIT ?;
+
+insertMonk:
+INSERT INTO monk_history(message_id, event, shown_at) VALUES (?, ?, ?);
+
+trimMonk:
+DELETE FROM monk_history WHERE id NOT IN (SELECT id FROM monk_history ORDER BY id DESC LIMIT 200);
+
+deleteAllMonk:
+DELETE FROM monk_history;

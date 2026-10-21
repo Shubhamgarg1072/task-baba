@@ -1,0 +1,47 @@
+CREATE TABLE task (
+  id TEXT NOT NULL PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  notes TEXT NOT NULL DEFAULT '',
+  category TEXT NOT NULL,
+  priority TEXT NOT NULL,
+  importance TEXT NOT NULL DEFAULT 'NORMAL',
+  created_at INTEGER NOT NULL,
+  due_at INTEGER,
+  due_has_time INTEGER NOT NULL DEFAULT 0,
+  estimated_minutes INTEGER,
+  completed_at INTEGER,
+  series_id TEXT,
+  occurrence_date TEXT,
+  postpone_count INTEGER NOT NULL DEFAULT 0,
+  snoozed_until INTEGER,
+  mit_date TEXT,
+  manual_order INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL
+);
+
+-- One instance per series per local date, even if generation runs twice or concurrently.
+CREATE UNIQUE INDEX task_series_occurrence ON task(series_id, occurrence_date);
+CREATE INDEX task_due ON task(due_at);
+CREATE INDEX task_completed ON task(completed_at);
+
+selectAll:
+SELECT * FROM task;
+
+selectById:
+SELECT * FROM task WHERE id = ?;
+
+upsert:
+INSERT OR REPLACE INTO task VALUES ?;
+
+insertOccurrence:
+INSERT OR IGNORE INTO task VALUES ?;
+
+deleteById:
+DELETE FROM task WHERE id = ?;
+
+clearMitForDate:
+UPDATE task SET mit_date = NULL WHERE mit_date = ?;
+
+deleteAll:
+DELETE FROM task;
