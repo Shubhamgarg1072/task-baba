@@ -7,8 +7,10 @@ CREATE TABLE task (
   priority TEXT NOT NULL,
   importance TEXT NOT NULL DEFAULT 'NORMAL',
   created_at INTEGER NOT NULL,
+  -- Timed deadline as epoch millis, or (when due_date is set) NULL.
   due_at INTEGER,
-  due_has_time INTEGER NOT NULL DEFAULT 0,
+  -- Date-only deadline as ISO local date.
+  due_date TEXT,
   estimated_minutes INTEGER,
   completed_at INTEGER,
   series_id TEXT,

@@ -10,7 +10,9 @@ CREATE TABLE recurring_series (
   time_of_day_minutes INTEGER,
   start_date TEXT NOT NULL,
   active INTEGER NOT NULL DEFAULT 1,
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  -- Last local date an occurrence was generated; prevents re-creating an instance the user deleted.
+  last_generated_date TEXT
 );
 
 selectAllSeries:
@@ -21,6 +23,9 @@ INSERT OR REPLACE INTO recurring_series VALUES ?;
 
 deactivateSeries:
 UPDATE recurring_series SET active = 0 WHERE id = ?;
+
+markGenerated:
+UPDATE recurring_series SET last_generated_date = ? WHERE id = ?;
 
 deleteAllSeries:
 DELETE FROM recurring_series;
