@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import app.taskbaba.app.AppController
 import app.taskbaba.app.ui.components.BabaCard
@@ -39,9 +40,13 @@ import app.taskbaba.app.ui.components.StatusDot
 import app.taskbaba.app.ui.components.StatusTone
 import app.taskbaba.app.ui.components.ToggleRow
 import app.taskbaba.app.ui.health.ClockField
+import app.taskbaba.app.ui.monk.AnimatedBaba
+import app.taskbaba.app.ui.monk.PlayRequest
+import app.taskbaba.app.ui.monk.rig.BabaAnimations
 import app.taskbaba.app.ui.tasks.SmallChip
 import app.taskbaba.app.ui.theme.Baba
 import app.taskbaba.core.data.AppPaths
+import app.taskbaba.core.model.AppSettings
 import app.taskbaba.core.model.MotionPreference
 import app.taskbaba.core.model.Personality
 import app.taskbaba.core.model.TimeWindow
@@ -148,7 +153,13 @@ fun SettingsScreen(app: AppController, extraSections: @Composable () -> Unit = {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         MotionPreference.entries.forEach { m -> SmallChip(m.label, s.motion == m) { update { it.copy(motion = m) } } }
                     }
+                    Text("Baba's smoothness", style = MaterialTheme.typography.bodyMedium, color = Baba.colors.text)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        AppSettings.ANIMATION_FPS_OPTIONS.forEach { f -> SmallChip("$f fps", s.animationFps == f) { update { it.copy(animationFps = f) } } }
+                        Text("Higher is smoother but uses a little more battery.", style = MaterialTheme.typography.bodySmall, color = Baba.colors.textMuted)
+                    }
                 }
+                AnimationGallery(s.animationFps, app.reduceMotion(s))
                 extraSections()
                 BabaCard {
                     SectionTitle("Your data")
@@ -178,4 +189,25 @@ fun SettingsScreen(app: AppController, extraSections: @Composable () -> Unit = {
         confirmButton = { SecondaryButton("Delete", { app.core.healthRepo.deleteForDate(app.core.today()); confirmHealthWipe = false; app.say("Today's health log deleted.") }, danger = true) },
         dismissButton = { SecondaryButton("Cancel", { confirmHealthWipe = false }) },
     )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AnimationGallery(fps: Int, reduceMotion: Boolean) {
+    var request by remember { mutableStateOf<PlayRequest?>(null) }
+    BabaCard {
+        SectionTitle("Baba's moves (${BabaAnimations.all.size})")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AnimatedBaba(null, 140.dp, fps, request = request, paused = !LocalWindowInfo.current.isWindowFocused)
+            Spacer(Modifier.width(12.dp))
+            Text(
+                if (reduceMotion) "Reduced motion is on, so Baba holds each move's key pose instead of animating."
+                else "Baba performs these on his own when things happen — drinking water at water breaks, a facepalm after the fourth postponement, a dance when a big task is done. Tap one to preview it.",
+                style = MaterialTheme.typography.bodySmall, color = Baba.colors.textMuted,
+            )
+        }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            BabaAnimations.all.forEach { a -> SmallChip(a.label, request?.animationId == a.id) { request = PlayRequest(a.id) } }
+        }
+    }
 }

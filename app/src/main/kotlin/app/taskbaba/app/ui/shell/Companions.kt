@@ -38,7 +38,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
 import app.taskbaba.app.AppController
 import app.taskbaba.app.Screen
-import app.taskbaba.app.ui.monk.MonkCharacter
+import app.taskbaba.app.ui.monk.AnimatedBaba
 import app.taskbaba.app.ui.tasks.QuickAddField
 import app.taskbaba.app.ui.tasks.rememberTasks
 import app.taskbaba.app.ui.theme.Baba
@@ -155,8 +155,8 @@ fun QuickAddWindow(app: AppController, dark: Boolean) {
 fun FloatingMonk(app: AppController, dark: Boolean) {
     val settings by app.core.settings.state.collectAsState()
     if (!settings.floatingMonk) return
-    val size = DpSize(300.dp, 120.dp)
-    val start = remember { clampedPosition(settings.floatingMonkX, settings.floatingMonkY, 300, 120) }
+    val size = DpSize(310.dp, 130.dp)
+    val start = remember { clampedPosition(settings.floatingMonkX, settings.floatingMonkY, 310, 130) }
     val state = rememberWindowState(size = size, position = start)
     val line by app.core.monkLine.collectAsState()
 
@@ -181,7 +181,7 @@ fun FloatingMonk(app: AppController, dark: Boolean) {
                         .padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    MonkCharacter(line.mood, 72.dp)
+                    AnimatedBaba(line, 84.dp, settings.animationFps)
                     Spacer(Modifier.width(10.dp))
                     Box(Modifier.weight(1f)) {
                         Text(line.text, style = MaterialTheme.typography.bodySmall, color = Baba.colors.text, maxLines = 5)

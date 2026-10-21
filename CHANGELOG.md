@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 — 2026-10-21
+
+- **Animated Baba**: a new poseable rig (head, eyes, brows, mouth, IK arms, props, effects) and 40 keyframed animations, each triggered by its matching event — water, eye, stretch, walk, meal and rest breaks; task created, chosen, done, due soon, overdue and postponed; greetings, day summaries and returning from a break.
+- Idle life: breathing, random blinks, lip-sync for new lines, looking around, mala counting, humming; yawning and dozing late at night.
+- Settings: smoothness 30 / 40 / 60 fps (default 40) and a gallery to preview every move. Reduced motion shows still key poses.
+- Battery-aware pacing: full frame rate only while something moves, ~5 fps while breathing, paused in an unfocused main window. Measured on an M1: ~1 % of one core in the background (was 22–50 % in the first prototype).
+- 11 new tests and a rendered contact sheet of every move.
+
 ## 1.0.0 — 2026-10-21
 
 First release.

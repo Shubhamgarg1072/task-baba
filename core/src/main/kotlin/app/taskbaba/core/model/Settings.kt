@@ -39,6 +39,8 @@ data class AppSettings(
     val workdays: Set<Weekday> = Weekday.WORKDAYS,
     val soundEnabled: Boolean = true,
     val motion: MotionPreference = MotionPreference.FOLLOW_SYSTEM,
+    /** Frame-rate cap for Baba's animations: 30, 40 or 60. */
+    val animationFps: Int = 40,
     val floatingMonk: Boolean = false,
     val floatingMonkX: Int? = null,
     val floatingMonkY: Int? = null,
@@ -49,12 +51,17 @@ data class AppSettings(
     /** Epoch millis until which all Baba notifications are paused ("snooze everything"). */
     val pausedUntil: Long? = null,
 ) {
+    companion object {
+        val ANIMATION_FPS_OPTIONS = listOf(30, 40, 60)
+    }
+
     fun healthConfig(type: HealthType): HealthReminderConfig =
         health.firstOrNull { it.type == type } ?: HealthReminderConfig.defaults().first { it.type == type }
 
     fun validate(): List<String> = buildList {
         if (maxNotificationsPerHour !in 1..30) add("Max notifications per hour must be 1–30.")
         if (dailyGoalPercent !in 10..100) add("Daily goal must be 10–100%.")
+        if (animationFps !in ANIMATION_FPS_OPTIONS) add("Animation smoothness must be 30, 40 or 60 fps.")
         health.forEach { addAll(it.validate()) }
     }
 }

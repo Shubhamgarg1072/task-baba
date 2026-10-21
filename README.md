@@ -12,6 +12,8 @@ Task Baba is a native-feeling macOS productivity and health companion with a fun
 
 > Screenshots are rendered from the real UI with sample data (`ScreenshotRenderer` test).
 
+![Baba's 40 moves](docs/screenshots/baba-moves.png)
+
 ## Features
 
 - **Daily tasks** — create, edit, complete, reopen, snooze, reschedule, delete, search, filter and sort. Title, description, notes, category (Work, Personal, Health, Learning, Other), priority (Critical, High, Medium, Low), your own importance flag, due date/time, estimated duration.
@@ -20,6 +22,7 @@ Task Baba is a native-feeling macOS productivity and health companion with a fun
 - **Repeating tasks** — daily, weekdays, weekly. Deterministic instance ids + a unique index guarantee no duplicates; a deleted day's task is never resurrected; missed days aren't back-filled.
 - **Health breaks** — water, eye breaks (20-20-20), stretching, walking, meals, rest. Per-reminder enable, interval or fixed meal times, active hours, weekdays, snooze length, sound. Actions: **Done**, **Remind me later**, **Skip**, **Turn off**. Only *your* confirmation counts as done — a delivered reminder never does.
 - **Baba's personality engine** — Friendly, Savage, or Adaptive (gets more direct after repeated postponements). 170+ original lines, de-duplicated across restarts, with cooldowns. Mute him, disable sarcasm, set quiet hours, cap notifications per hour. He never shames you about health or breaks.
+- **Animated Baba** — a poseable, original character with **40 animations**: he drinks water at water breaks, rests his eyes, stretches, walks, eats, sips chai, taps his watch when a deadline nears, facepalms after the fourth postponement, dances when an important task is done and throws confetti when all priorities are finished. Between events he breathes, blinks, lip-syncs new lines, looks around, counts mala beads, and dozes off late at night. Smoothness is selectable (30 / 40 / 60 fps, default 40); reduced motion shows each move's key pose instead. Preview every move in **Settings → Baba's moves**.
 - **Menu bar companion** — today's progress, top priorities (click to complete), quick add, next reminder, snooze controls, AI status, floating-Baba toggle, open window, quit. The app keeps running when the window is closed.
 - **Floating Baba** (optional) — small always-on-top window, draggable, never steals keyboard focus, remembers its position, clamps to connected displays, respects reduced motion.
 - **Daily review & stats** — planned vs completed, completion %, overdue count, Critical/High completion, MIT, current and best streak, health actions confirmed vs reminders shown, 7-day view, history (deletable), and Baba's end-of-day summary. Finished days are frozen into history at rollover; nothing is deleted by the daily reset.
@@ -77,6 +80,7 @@ cloud/           Colab notebook, auth/limits proxy, portable server (not deploye
 | `tasks/` | `TaskService` (validation, postponements, MIT, ordering), `TaskRanker`, `RecurrenceEngine` |
 | `reminders/` | `HealthSchedule` (pure scheduling math: active hours, weekdays, quiet hours, DST), `NotificationPolicy` (quiet hours, pause, hourly cap) |
 | `monk/` | `MessageLibrary` + `MonkEngine` (tone resolution, de-duplication, cooldowns, muted wording) |
+| `app/ui/monk/rig/` | Baba's rig: `Pose` (every animatable parameter, 2-bone IK arms), `BabaRenderer`, the 40-clip keyframe library, `BabaDirector` (event → clip), `BabaPerformer` (crossfades, blinks, lip-sync, idle variety) and `FramePacer` |
 | `stats/` | `StatsCalculator` (daily records, streaks, health delivered vs confirmed) |
 | `BabaCore` | Orchestrates the 20-second scheduling loop, day rollover, notifications and their responses |
 | `ai/` | `AiRouter` (modes, health-checked routing, timeouts, dedup), `CloudInferenceClient`, `PromptBuilder`, `OutputValidator` |
@@ -88,6 +92,7 @@ Key reliability choices:
 - Notifications always use the deterministic library text — AI never delays a reminder.
 - A single-instance lock prevents two copies from double-notifying.
 - Time is injected (`ClockProvider`) and the time zone is read on every tick, so travelling and DST changes apply live.
+- Animation is battery-aware. Compose Desktop repaints the whole window on every frame, so Baba requests frames only when one is due: your chosen 30/40/60 fps during reactions, blinks and lip-sync, about 5 fps while he's just breathing, and none at all in the main window while it isn't focused. Measured on an M1 (Activity Monitor-style % of one core): about 1 % with the window in the background, about 9 % while you're looking at the Today screen, and about 8 % extra for the optional Floating Baba. Set `TASKBABA_DEBUG_FPS=1` to log real frame rates.
 
 ## AI: Google Drive + Colab
 
@@ -133,11 +138,11 @@ Items are classified **Critical / High / Normal / Low / Noise** by your rules fi
 ## Testing
 
 ```bash
-./gradlew test                                  # 136 JVM tests
+./gradlew test                                  # 147 JVM tests
 python3 cloud/proxy/test_taskbaba_proxy.py      # proxy auth/limits tests
 ```
 
-Covered: ranking and deadline ordering, recurrence and duplicate prevention (incl. DST), statistics and streaks, monk selection/de-duplication/cooldowns, reminder scheduling (active hours, quiet hours, pause, sleep/stale, DST), permission denial, restart persistence, settings persistence, AI routing (healthy, offline, cloud down, timeout, recovery, built-in never calls out, slow inference doesn't block reminders), invalid AI output, Drive auth denial and checksum mismatch, integration adapters (401/403/429/500/offline/duplicates/unsupported), notification gate decisions, the native-bridge protocol, and an offscreen render of every screen in light and dark mode. External services are always mocked.
+Covered: animation library integrity (every clip well-formed and ending at rest), event→clip mapping for every event and tone, frame pacing at 30/40/60 fps on 60 Hz and 120 Hz displays, IK bone lengths, crossfades/blinks/lip-sync/idle variety, plus ranking and deadline ordering, recurrence and duplicate prevention (incl. DST), statistics and streaks, monk selection/de-duplication/cooldowns, reminder scheduling (active hours, quiet hours, pause, sleep/stale, DST), permission denial, restart persistence, settings persistence, AI routing (healthy, offline, cloud down, timeout, recovery, built-in never calls out, slow inference doesn't block reminders), invalid AI output, Drive auth denial and checksum mismatch, integration adapters (401/403/429/500/offline/duplicates/unsupported), notification gate decisions, the native-bridge protocol, and an offscreen render of every screen in light and dark mode. External services are always mocked.
 
 ## Known limitations
 

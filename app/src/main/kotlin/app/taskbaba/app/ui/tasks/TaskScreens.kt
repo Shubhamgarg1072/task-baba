@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
@@ -48,7 +49,7 @@ import app.taskbaba.app.ui.components.ScreenHeader
 import app.taskbaba.app.ui.components.SecondaryButton
 import app.taskbaba.app.ui.components.SectionTitle
 import app.taskbaba.app.ui.health.HealthCompactCard
-import app.taskbaba.app.ui.monk.MonkCharacter
+import app.taskbaba.app.ui.monk.AnimatedBaba
 import app.taskbaba.app.ui.theme.Baba
 import app.taskbaba.core.model.Task
 import app.taskbaba.core.monk.MonkEvent
@@ -180,12 +181,12 @@ fun TaskListScreen(app: AppController, screen: Screen) {
 }
 
 @Composable
-fun MonkPanel(app: AppController, characterSize: Dp = 96.dp) {
+fun MonkPanel(app: AppController, characterSize: Dp = 120.dp) {
     val line by app.core.monkLine.collectAsState()
     val settings by app.core.settings.state.collectAsState()
     BabaCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            MonkCharacter(line.mood, characterSize, animate = true)
+            AnimatedBaba(line, characterSize, settings.animationFps, paused = !LocalWindowInfo.current.isWindowFocused)
             Spacer(Modifier.width(18.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
