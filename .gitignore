@@ -2,7 +2,8 @@
 .DS_Store
 .AppleDouble
 .LSOverride
-Icon[]
+Icon[
+]
 ._*
 
 # Gradle / Kotlin / IDE
@@ -58,3 +59,7 @@ secrets/
 
 # Claude Code agent worktrees
 .claude/
+
+# Python
+__pycache__/
+*.pyc
