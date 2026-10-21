@@ -57,8 +57,6 @@ secrets/
 *.log
 *.hprof
 
-# Claude Code agent worktrees
-.claude/
 
 # Python
 __pycache__/
