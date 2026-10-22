@@ -161,3 +161,12 @@ class BridgeLocatorTest {
         assertEquals("v", bridge.secrets.get("k"))
     }
 }
+
+class NotAllowedDetectionTest {
+    @kotlin.test.Test fun recognisesBothFormsOfTheRefusal() {
+        kotlin.test.assertTrue(BridgeProtocol.isNotAllowed("notAllowed"))
+        kotlin.test.assertTrue(BridgeProtocol.isNotAllowed("Notifications are not allowed for this application"))
+        kotlin.test.assertTrue(BridgeProtocol.isNotAllowed("The operation couldn’t be completed. (UNErrorDomain error 1.)"))
+        kotlin.test.assertTrue(!BridgeProtocol.isNotAllowed(null) && !BridgeProtocol.isNotAllowed("timeout"))
+    }
+}

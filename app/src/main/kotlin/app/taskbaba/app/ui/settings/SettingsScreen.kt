@@ -88,11 +88,12 @@ fun SettingsScreen(app: AppController, extraSections: @Composable () -> Unit = {
                         NotificationAuth.AUTHORIZED -> StatusTone.OK to "macOS notifications allowed"
                         NotificationAuth.DENIED -> StatusTone.ERROR to "Blocked in System Settings — reminders show in-app only"
                         NotificationAuth.NOT_DETERMINED -> StatusTone.WARN to "Not asked yet"
+                        NotificationAuth.REFUSED -> StatusTone.WARN to "macOS refused permission for this copy — open Task Baba from Finder and try again (simple banners meanwhile)"
                         NotificationAuth.UNAVAILABLE -> StatusTone.WARN to "Native bridge unavailable — simple banners without buttons"
                     }
                     StatusDot(tone, label)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (app.notificationAuth == NotificationAuth.NOT_DETERMINED) PrimaryButton("Allow notifications", { app.requestNotifications() })
+                        if (app.notificationAuth == NotificationAuth.NOT_DETERMINED || app.notificationAuth == NotificationAuth.REFUSED) PrimaryButton("Allow notifications", { app.requestNotifications() })
                         SecondaryButton("Send test notification", { app.sendTestNotification() })
                         SecondaryButton("System Settings…", { app.openNotificationSettings() })
                     }

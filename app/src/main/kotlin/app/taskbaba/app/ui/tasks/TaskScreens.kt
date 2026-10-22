@@ -226,6 +226,19 @@ fun NotificationPermissionCard(app: AppController) {
                 SecondaryButton("Not now", { app.core.updateSettings { it.copy(onboarded = true) }; app.say("Reminders will appear inside Task Baba only.") })
             }
         }
+        NotificationAuth.REFUSED -> BabaCard {
+            SectionTitle("Notifications need one more step")
+            Text(
+                "macOS didn't let this copy of Task Baba ask for notification permission. This happens to apps built on your Mac after an update, " +
+                    "or when they weren't opened from Finder. Quit Task Baba (menu bar ▸ Quit), open it from Finder or the Dock, and press Allow again. " +
+                    "Until then, reminders still appear as simple banners and here in the app.",
+                style = MaterialTheme.typography.bodyMedium, color = Baba.colors.text,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PrimaryButton("Try again", { app.requestNotifications() })
+                SecondaryButton("Open System Settings", { app.openNotificationSettings() })
+            }
+        }
         NotificationAuth.DENIED -> BabaCard {
             SectionTitle("Notifications are off")
             Text("Reminders still appear here and in the menu bar, but macOS won't show banners.", style = MaterialTheme.typography.bodyMedium, color = Baba.colors.textMuted)

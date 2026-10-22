@@ -59,12 +59,15 @@ class MacNotifierProcessTest {
             esac
             """.trimIndent(),
         )
-        val notifier = MacNotifier(helper, scope, replyTimeoutMs = 3_000)
+        val fallbackCalls = mutableListOf<List<String>>()
+        val notifier = MacNotifier(helper, scope, fallback = OsascriptNotifier { fallbackCalls += it; 0 }, replyTimeoutMs = 3_000)
         try {
             assertEquals(NotificationAuth.DENIED, notifier.authorization())
             val response = scope.async { notifier.responses.first() }
             val result = notifier.post(BabaNotification("n1", NotificationKind.TASK, "Title", "Body"))
-            assertIs<NotificationsNotAllowedException>(result.exceptionOrNull())
+            // Refused natively → the reminder still goes out as a plain banner.
+            assertTrue(result.isSuccess)
+            assertEquals(1, fallbackCalls.size)
             val r = withTimeout(3_000) { response.await() }
             assertEquals("done", r.actionId)
             assertEquals("42", r.userInfo["taskId"])

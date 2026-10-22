@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.2 — 2026-10-22
+
+- **Fixed: misleading "native notifications aren't available" message.** When macOS refuses the permission request (UNErrorDomain 1 — it happens to apps built and ad-hoc signed on your own Mac after a rebuild, or when the app wasn't opened from Finder/Dock), Task Baba now says so and explains the fix: quit, open it from Finder or the Dock, and press Allow again.
+- Reminders no longer disappear when native notifications are refused: they fall back to simple macOS banners (without buttons) and still appear in the app.
+
 ## 1.2.1 — 2026-10-22
 
 - Notes are now two sidebar sections: **Notes** for simple notes and **Secure Notes** for Keychain-protected logins and secrets (View menu → Secure Notes, too).

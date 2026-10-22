@@ -138,6 +138,8 @@ class AppController(
             when (notificationAuth) {
                 NotificationAuth.AUTHORIZED -> "Notifications allowed. Baba can now reach you."
                 NotificationAuth.DENIED -> "Notifications are off. Reminders will appear inside Task Baba only — you can allow them in System Settings."
+                NotificationAuth.REFUSED -> "macOS refused notification permission for this copy of Task Baba (it was rebuilt or not opened from Finder). " +
+                    "Quit Task Baba, open it from Finder or the Dock, then press Allow notifications again. Until then reminders show as simple banners and in the app."
                 else -> "Native notifications aren't available in this build; Baba will use simple banners and in-app reminders."
             },
         )

@@ -79,6 +79,10 @@ object BridgeProtocol {
         }
     }
 
+    /** The helper reports UNErrorDomain 1 either as "notAllowed" or as the system's localized text. */
+    fun isNotAllowed(error: String?): Boolean =
+        error != null && (error == "notAllowed" || error.contains("not allowed", ignoreCase = true) || error.contains("UNErrorDomain error 1"))
+
     fun authFrom(status: String?): NotificationAuth = when (status) {
         "authorized" -> NotificationAuth.AUTHORIZED
         "denied" -> NotificationAuth.DENIED

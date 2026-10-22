@@ -61,7 +61,10 @@ class MacNotifier(
     override suspend fun requestAuthorization(): NotificationAuth {
         if (helper == null) return NotificationAuth.UNAVAILABLE
         val reply = call(authTimeoutMs) { BridgeProtocol.requestAuth(it) } ?: return authorization()
-        return BridgeProtocol.authFrom(reply.status)
+        val status = BridgeProtocol.authFrom(reply.status)
+        // macOS answered "not allowed" without ever showing the prompt.
+        if (!reply.ok && status == NotificationAuth.NOT_DETERMINED && BridgeProtocol.isNotAllowed(reply.error)) return NotificationAuth.REFUSED
+        return status
     }
 
     override suspend fun post(notification: BabaNotification): Result<Unit> {
@@ -71,9 +74,9 @@ class MacNotifier(
         return when {
             reply.ok -> Result.success(Unit)
             reply.status == "unavailable" -> { bundled = false; fallback.post(notification) }
-            reply.error == "notAllowed" -> Result.failure(
-                NotificationsNotAllowedException("Notifications are turned off for Task Baba. Enable them in System Settings › Notifications."),
-            )
+            // Native banners refused (turned off, or permission not granted to this build): still show a
+            // simple banner so the reminder isn't lost. Buttons are only available natively.
+            BridgeProtocol.isNotAllowed(reply.error) -> fallback.post(notification)
             else -> Result.failure(IllegalStateException("Notification failed: ${reply.error ?: "unknown error"}"))
         }
     }

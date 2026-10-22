@@ -3,7 +3,12 @@ package app.taskbaba.core.platform
 import kotlinx.coroutines.flow.Flow
 import java.time.Clock
 
-enum class NotificationAuth { NOT_DETERMINED, AUTHORIZED, DENIED, UNAVAILABLE }
+/**
+ * [REFUSED]: macOS rejected the permission request itself (UNErrorDomain 1). For apps built and
+ * ad-hoc signed on this Mac this happens after a rebuild (the stored permission no longer matches the
+ * new signature) or when the app wasn't launched normally from Finder/Dock.
+ */
+enum class NotificationAuth { NOT_DETERMINED, AUTHORIZED, DENIED, REFUSED, UNAVAILABLE }
 
 enum class NotificationKind { TASK, HEALTH, INBOX, SUMMARY, TEST }
 

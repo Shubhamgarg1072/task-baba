@@ -142,7 +142,7 @@ Items are classified **Critical / High / Normal / Low / Noise** by your rules fi
 ## Testing
 
 ```bash
-./gradlew test                                  # 166 JVM tests
+./gradlew test                                  # 167 JVM tests
 python3 cloud/proxy/test_taskbaba_proxy.py      # proxy auth/limits tests
 ```
 
@@ -151,7 +151,7 @@ Covered: animation library integrity (every clip well-formed and ending at rest)
 ## Known limitations
 
 - Reminders fire while Task Baba is running; turn on **Launch at login** to keep them going.
-- Builds are ad-hoc signed, not notarized.
+- Builds are ad-hoc signed, not notarized. macOS ties notification permission to the app's signature, so after rebuilding you may need to quit, reopen Task Baba from Finder/Dock and press **Allow notifications** again; until then reminders show as plain banners.
 - Notification button handling, real Colab runs, and real Jira/Slack/Microsoft/Google accounts were verified only against mocks in automated tests (see [CHANGELOG](CHANGELOG.md)).
 - "Return from break" is detected when you come back to the Task Baba window after 30+ minutes, not system-wide idle time.
 - Some Material components render in Compose rather than AppKit, so a few controls look slightly less native than SwiftUI.
