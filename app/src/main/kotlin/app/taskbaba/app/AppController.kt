@@ -42,6 +42,20 @@ sealed interface Editor {
 }
 
 /** UI-level state for the windows. Business rules stay in [BabaCore]. */
+private const val BUNDLE_ID = "app.taskbaba.TaskBaba"
+
+enum class LinkRoute { BROWSER, SYSTEM_OPEN, REFUSED }
+
+/**
+ * Web links go to the browser. System Settings and mail links go through `open`, which hands them to
+ * the app that owns the scheme (Java's Desktop.browse would send them to the browser). Anything else is refused.
+ */
+fun linkRoute(url: String): LinkRoute = when (runCatching { URI(url).scheme?.lowercase() }.getOrNull()) {
+    "https", "http" -> LinkRoute.BROWSER
+    "x-apple.systempreferences", "mailto" -> LinkRoute.SYSTEM_OPEN
+    else -> LinkRoute.REFUSED
+}
+
 class AppController(
     val core: BabaCore,
     val bridge: MacBridge,
@@ -145,7 +159,8 @@ class AppController(
         )
     }
 
-    fun openNotificationSettings() = openUrl("x-apple.systempreferences:com.apple.Notifications-Settings.extension")
+    /** System Settings › Notifications, scrolled to Task Baba where macOS supports it. */
+    fun openNotificationSettings() = openUrl("x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=$BUNDLE_ID")
 
     fun setLaunchAtLogin(enabled: Boolean) = scope.launch(Dispatchers.IO) {
         val r = bridge.loginItem.setEnabled(enabled)
@@ -166,9 +181,13 @@ class AppController(
     fun openUrl(url: String) {
         runCatching {
             val uri = URI(url)
-            require(uri.scheme in setOf("https", "http", "x-apple.systempreferences", "mailto")) { "Refusing to open ${uri.scheme} links" }
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) Desktop.getDesktop().browse(uri)
-            else ProcessBuilder("/usr/bin/open", url).start()
+            when (linkRoute(url)) {
+                LinkRoute.BROWSER ->
+                    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) Desktop.getDesktop().browse(uri)
+                    else ProcessBuilder("/usr/bin/open", url).start()
+                LinkRoute.SYSTEM_OPEN -> ProcessBuilder("/usr/bin/open", url).start()
+                LinkRoute.REFUSED -> error("Refusing to open ${uri.scheme} links")
+            }
         }.onFailure { say("Couldn't open the link: ${it.message}") }
     }
 
