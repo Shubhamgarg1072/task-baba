@@ -13,6 +13,7 @@ class MacBridge(scope: CoroutineScope, val helper: Path? = BridgeLocator.locate(
     val notifier = MacNotifier(helper, scope)
     val secrets = KeychainSecretStore(helper)
     val loginItem = MacLoginItemController(helper)
+    val deviceAuth = MacDeviceAuthenticator(helper)
     val isAvailable: Boolean get() = helper != null
 
     fun close() = notifier.close()
@@ -90,4 +91,20 @@ class MacLoginItemController(private val helper: Path?) : LoginItemController {
             }
         }
     }
+}
+
+/** Touch ID / Mac password via `babakit auth verify`. Blocks only an IO thread while the system prompt is up. */
+class MacDeviceAuthenticator(private val helper: Path?) : app.taskbaba.core.platform.DeviceAuthenticator {
+    override suspend fun authenticate(reason: String): app.taskbaba.core.platform.DeviceAuthResult =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            val h = helper ?: return@withContext app.taskbaba.core.platform.DeviceAuthResult.UNAVAILABLE
+            val r = runHelper(h, listOf("auth", "verify", reason), timeoutSec = 180)
+                ?: return@withContext app.taskbaba.core.platform.DeviceAuthResult.FAILED
+            when (r.stdout.trim()) {
+                "ok" -> app.taskbaba.core.platform.DeviceAuthResult.SUCCESS
+                "cancelled" -> app.taskbaba.core.platform.DeviceAuthResult.CANCELLED
+                "unavailable" -> app.taskbaba.core.platform.DeviceAuthResult.UNAVAILABLE
+                else -> app.taskbaba.core.platform.DeviceAuthResult.FAILED
+            }
+        }
 }

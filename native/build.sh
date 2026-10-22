@@ -6,6 +6,6 @@ here="$(cd "$(dirname "$0")" && pwd)"
 out="${1:-$here/build/babakit}"
 mkdir -p "$(dirname "$out")"
 swiftc -O -swift-version 5 -target arm64-apple-macos13.0 \
-  -framework UserNotifications -framework ServiceManagement -framework Security \
+  -framework UserNotifications -framework ServiceManagement -framework Security -framework LocalAuthentication \
   "$here"/babakit/*.swift -o "$out"
 echo "$out"

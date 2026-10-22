@@ -1,0 +1,30 @@
+-- Notes. For SECURE notes only the title and website live here; username, password and secret text
+-- are stored in the macOS Keychain under "note.<id>" and never touch this file.
+CREATE TABLE note (
+  id TEXT NOT NULL PRIMARY KEY,
+  kind TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL DEFAULT '',
+  url TEXT NOT NULL DEFAULT '',
+  pinned INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+
+allNotes:
+SELECT * FROM note ORDER BY pinned DESC, updated_at DESC;
+
+noteById:
+SELECT * FROM note WHERE id = ?;
+
+upsertNote:
+INSERT OR REPLACE INTO note VALUES ?;
+
+deleteNote:
+DELETE FROM note WHERE id = ?;
+
+allNoteIds:
+SELECT id FROM note WHERE kind = 'SECURE';
+
+deleteAllNotes:
+DELETE FROM note;

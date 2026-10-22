@@ -29,6 +29,7 @@ enum class Screen(val title: String, val view: TaskView? = null) {
     ALL("All Tasks", TaskView.ALL),
     INBOX("Smart Inbox"),
     HEALTH("Health"),
+    NOTES("Notes"),
     REVIEW("Daily Review"),
     AI("AI & Model"),
     SETTINGS("Settings"),
@@ -61,6 +62,31 @@ class AppController(
         private set
 
     val settings: AppSettings get() = core.settings.value
+
+    /** Extra cleanup run by Settings → Reset all data (e.g. notes and their Keychain items). */
+    val resetHooks = mutableListOf<() -> Unit>()
+
+    private var clipboardJob: kotlinx.coroutines.Job? = null
+
+    /**
+     * Copies text. Sensitive values (passwords) are wiped from the clipboard after 30 seconds unless
+     * something else was copied in the meantime.
+     */
+    fun copy(text: String, sensitive: Boolean, what: String) {
+        val clipboard = java.awt.Toolkit.getDefaultToolkit().systemClipboard
+        runCatching { clipboard.setContents(java.awt.datatransfer.StringSelection(text), null) }
+            .onFailure { say("Couldn't copy: ${it.message}"); return }
+        clipboardJob?.cancel()
+        if (!sensitive) { say("$what copied."); return }
+        say("$what copied — it will be cleared from the clipboard in 30 seconds.")
+        clipboardJob = scope.launch {
+            delay(30_000)
+            runCatching {
+                val current = clipboard.getData(java.awt.datatransfer.DataFlavor.stringFlavor) as? String
+                if (current == text) clipboard.setContents(java.awt.datatransfer.StringSelection(""), null)
+            }
+        }
+    }
 
     fun start() {
         scope.launch(Dispatchers.IO) {

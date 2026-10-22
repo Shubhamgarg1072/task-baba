@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 — 2026-10-22
+
+- **Notes**: a new sidebar section for quick notes — search, pin, optional link.
+- **Secure notes** for logins and credentials: username, password and secret notes are stored only in the macOS Keychain (the database holds just the title and website). Viewing or editing needs Touch ID or your Mac password (`babakit auth`, LocalAuthentication) and re-locks after 2 minutes; copied passwords are cleared from the clipboard after 30 s; strong-password generator.
+- Settings → Reset all data now also deletes notes and their Keychain entries.
+- Database migration 1 → 2 (adds the `note` table) runs automatically; existing data is kept.
+- 13 new tests, including one that inspects the raw SQLite file to prove secrets never land there, and UI tests for creating, locking and unlocking notes.
+
 ## 1.1.1 — 2026-10-22
 
 - **Fixed: "New task" didn't work on the Today screen.** The editor opened inside a scrolling column and crashed during layout, so no task could be added from it. The editor now has its own bounded area.

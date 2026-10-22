@@ -46,6 +46,13 @@ interface SecretStore {
     fun delete(key: String)
 }
 
+enum class DeviceAuthResult { SUCCESS, CANCELLED, FAILED, UNAVAILABLE }
+
+/** Asks the Mac's owner to confirm with Touch ID or their login password. */
+fun interface DeviceAuthenticator {
+    suspend fun authenticate(reason: String): DeviceAuthResult
+}
+
 enum class LoginItemStatus { ENABLED, DISABLED, REQUIRES_APPROVAL, UNAVAILABLE }
 
 interface LoginItemController {

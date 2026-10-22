@@ -37,6 +37,8 @@ import app.taskbaba.core.data.KvStore
 import app.taskbaba.core.integrations.FollowUpTaskCreator
 import app.taskbaba.core.integrations.InboxResponseOutcome
 import app.taskbaba.core.integrations.IntegrationsModule
+import app.taskbaba.core.notes.NotesService
+import app.taskbaba.app.ui.notes.NotesScreen
 import app.taskbaba.core.platform.NotificationResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,6 +63,7 @@ class AppContainer(val scope: CoroutineScope) {
     val ai: AiModule = AiModule(kv, bridge.secrets, scope, openBrowser = { url -> openExternal(url) })
     val core: BabaCore = BabaCore(db, bridge.notifier, monkAi = ai.router)
     val app: AppController = AppController(core, bridge, scope)
+    val notes: NotesService = NotesService(db, bridge.secrets, bridge.deviceAuth, secretsPersistent = { bridge.secrets.isPersistent })
     val integrations: IntegrationsModule = IntegrationsModule(
         db, kv, bridge.secrets, bridge.notifier,
         FollowUpTaskCreator { draft -> core.tasks.create(draft) },
@@ -68,6 +71,7 @@ class AppContainer(val scope: CoroutineScope) {
     )
 
     fun start() {
+        app.resetHooks += { notes.deleteAll() }
         ai.start()
         core.start(scope)
         integrations.start()
@@ -149,7 +153,7 @@ fun main() {
                     Item("Close Window", shortcut = KeyShortcut(Key.W, meta = true), onClick = { app.mainWindowVisible = false })
                 }
                 Menu("View") {
-                    listOf(Screen.TODAY, Screen.UPCOMING, Screen.OVERDUE, Screen.COMPLETED, Screen.ALL, Screen.INBOX, Screen.HEALTH, Screen.REVIEW)
+                    listOf(Screen.TODAY, Screen.UPCOMING, Screen.OVERDUE, Screen.COMPLETED, Screen.ALL, Screen.INBOX, Screen.HEALTH, Screen.NOTES, Screen.REVIEW)
                         .forEachIndexed { i, s -> Item(s.title, shortcut = KeyShortcut(Key.Companion.number(i + 1), meta = true), onClick = { app.open(s) }) }
                     Separator()
                     Item("AI & Model", onClick = { app.open(Screen.AI) })
@@ -169,6 +173,7 @@ fun main() {
                         Screen.UPCOMING, Screen.OVERDUE, Screen.COMPLETED, Screen.ALL -> TaskListScreen(app, screen)
                         Screen.INBOX -> InboxScreen(container.integrations, app::openUrl, rememberTasks(app), onOpenSettings = { app.open(Screen.SETTINGS) })
                         Screen.HEALTH -> HealthScreen(app)
+                        Screen.NOTES -> NotesScreen(app, container.notes)
                         Screen.REVIEW -> ReviewScreen(app)
                         Screen.AI -> AiScreen(container.ai)
                         Screen.SETTINGS -> SettingsScreen(app) { IntegrationsSettings(container.integrations) }

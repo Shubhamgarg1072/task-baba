@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.StickyNote2
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.Icon
@@ -97,6 +98,7 @@ private fun Sidebar(app: AppController, extras: SidebarExtras) {
         Spacer(Modifier.height(12.dp))
         Item(app, Screen.INBOX, Icons.Outlined.Inbox, extras.inboxCount.takeIf { it > 0 })
         Item(app, Screen.HEALTH, Icons.Outlined.FavoriteBorder, null)
+        Item(app, Screen.NOTES, Icons.Outlined.StickyNote2, null)
         Item(app, Screen.REVIEW, Icons.Outlined.Insights, null)
         Spacer(Modifier.height(12.dp))
         Item(app, Screen.AI, Icons.Outlined.AutoAwesome, null)

@@ -23,6 +23,7 @@ Task Baba is a native-feeling macOS productivity and health companion with a fun
 - **Health breaks** — water, eye breaks (20-20-20), stretching, walking, meals, rest. Per-reminder enable, interval or fixed meal times, active hours, weekdays, snooze length, sound. Actions: **Done**, **Remind me later**, **Skip**, **Turn off**. Only *your* confirmation counts as done — a delivered reminder never does.
 - **Baba's personality engine** — Friendly, Savage, or Adaptive (gets more direct after repeated postponements). 170+ original lines, de-duplicated across restarts, with cooldowns. Mute him, disable sarcasm, set quiet hours, cap notifications per hour. He never shames you about health or breaks.
 - **Animated Baba** — a poseable, original character with **40 animations**: he drinks water at water breaks, rests his eyes, stretches, walks, eats, sips chai, taps his watch when a deadline nears, facepalms after the fourth postponement, dances when an important task is done and throws confetti when all priorities are finished. Between events he breathes, blinks, lip-syncs new lines, looks around, counts mala beads, and dozes off late at night. Smoothness is selectable (30 / 40 / 60 fps, default 40); reduced motion shows each move's key pose instead. Preview every move in **Settings → Baba's moves**.
+- **Notes & secure notes** — quick local notes (searchable, pinnable, with a link), plus **secure notes for logins and credentials**: the username, password and secret text are stored only in the **macOS Keychain** (never in Task Baba's database), viewing or editing them asks for **Touch ID or your Mac password** and stays unlocked for 2 minutes, copied passwords are wiped from the clipboard after 30 seconds, and there's a strong-password generator. Notes are never sent to AI, shown in notifications or logged. (For critical accounts, a dedicated password manager with sync and breach alerts is still the safer home.)
 - **Menu bar companion** — today's progress, top priorities (click to complete), quick add, next reminder, snooze controls, AI status, floating-Baba toggle, open window, quit. The app keeps running when the window is closed.
 - **Floating Baba** (optional) — small always-on-top window, draggable, never steals keyboard focus, remembers its position, clamps to connected displays, respects reduced motion.
 - **Daily review & stats** — planned vs completed, completion %, overdue count, Critical/High completion, MIT, current and best streak, health actions confirmed vs reminders shown, 7-day view, history (deletable), and Baba's end-of-day summary. Finished days are frozen into history at rollover; nothing is deleted by the daily reset.
@@ -60,7 +61,8 @@ Data lives in `~/Library/Application Support/TaskBaba/` (override with `TASKBABA
 |---|---|---|
 | Notifications | Health reminders and deadline alerts with action buttons | Only when you press **Allow notifications** (Today screen or Settings). If denied, reminders still appear in the app and menu bar. |
 | Login item | Optional launch at login so reminders keep running | When you turn on **Launch at login**. macOS may ask you to approve it in System Settings → General → Login Items. |
-| Keychain | Stores API keys/tokens for integrations and AI | Transparently; ad-hoc rebuilds may cause macOS to ask again. |
+| Keychain | Stores secure-note secrets and API keys/tokens for integrations and AI | Transparently; ad-hoc rebuilds may cause macOS to ask again. |
+| Touch ID / Mac password | Confirms it's you before showing or editing secure notes | Each time you unlock secure notes (unlock lasts 2 minutes). |
 
 Task Baba does not use Accessibility, Screen Recording, Full Disk Access or any private API.
 
@@ -86,6 +88,7 @@ cloud/           Colab notebook, auth/limits proxy, portable server (not deploye
 | `ai/` | `AiRouter` (modes, health-checked routing, timeouts, dedup), `CloudInferenceClient`, `PromptBuilder`, `OutputValidator` |
 | `drive/` | Google OAuth (loopback + PKCE), Drive metadata client, model catalog & verifier |
 | `integrations/` | Source adapters, classifier, notification gate, inbox service |
+| `notes/` | `NotesService`: notes in SQLite, secure-note secrets in the Keychain, Touch ID unlock window, password generator |
 
 Key reliability choices:
 - Reminders run in the app's own loop (not pre-scheduled in Notification Center), with state persisted per reminder. Restarts don't duplicate reminders; reminders missed by more than 30 minutes (Mac asleep, app closed) are rescheduled instead of fired in a burst.
@@ -131,14 +134,15 @@ Items are classified **Critical / High / Normal / Low / Noise** by your rules fi
 ## Privacy
 
 - No analytics, telemetry, accounts or servers of ours. Task data stays in a local SQLite database.
-- Secrets (AI key, OAuth tokens, integration tokens) are stored only in the macOS Keychain, never in the database, logs or source.
+- Secrets (secure-note usernames/passwords/secret text, AI key, OAuth tokens, integration tokens) are stored only in the macOS Keychain, never in the database, logs or source. A test checks the raw database file never contains a secure note's password.
+- Plain notes are stored unencrypted in the local database (like tasks); use secure notes for anything sensitive.
 - Network access happens only for features you turn on (Colab endpoint, Google Drive metadata, Jira/Slack/Microsoft).
 - Model backups contain model files only — never tasks, health or notification data.
 
 ## Testing
 
 ```bash
-./gradlew test                                  # 152 JVM tests
+./gradlew test                                  # 165 JVM tests
 python3 cloud/proxy/test_taskbaba_proxy.py      # proxy auth/limits tests
 ```
 

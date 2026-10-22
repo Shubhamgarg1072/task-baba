@@ -21,8 +21,8 @@ object AppPaths {
 }
 
 object DatabaseFactory {
-    /** Current schema version. Bump and add a step in [migrate] when the .sq schema changes. */
-    private const val SCHEMA_VERSION = 1L
+    /** Current schema version: 1 + the number of `migrations/N.sqm` files. */
+    val SCHEMA_VERSION: Long get() = TaskBabaDatabase.Schema.version
 
     fun file(path: Path = AppPaths.database): TaskBabaDatabase =
         open(JdbcSqliteDriver("jdbc:sqlite:${path.toAbsolutePath()}", Properties().apply { put("foreign_keys", "true") }))

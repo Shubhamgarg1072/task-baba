@@ -178,8 +178,8 @@ fun SettingsScreen(app: AppController, extraSections: @Composable () -> Unit = {
     if (confirmReset) AlertDialog(
         onDismissRequest = { confirmReset = false },
         title = { Text("Reset Task Baba?") },
-        text = { Text("This permanently deletes all tasks, repeating tasks, health history, daily records and settings on this Mac. Integrations and Keychain secrets are disconnected separately.") },
-        confirmButton = { SecondaryButton("Delete everything", { app.core.resetAllData(); confirmReset = false; app.editor = null; app.say("All local data was deleted. A fresh start, my child.") }, danger = true) },
+        text = { Text("This permanently deletes all tasks, repeating tasks, notes (including secure notes and their Keychain entries), health history, daily records and settings on this Mac. Integrations and Keychain secrets are disconnected separately.") },
+        confirmButton = { SecondaryButton("Delete everything", { app.core.resetAllData(); app.resetHooks.forEach { it() }; confirmReset = false; app.editor = null; app.say("All local data was deleted. A fresh start, my child.") }, danger = true) },
         dismissButton = { SecondaryButton("Cancel", { confirmReset = false }) },
     )
     if (confirmHealthWipe) AlertDialog(
