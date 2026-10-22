@@ -26,6 +26,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import app.taskbaba.app.AppController
 import app.taskbaba.app.Editor
@@ -102,10 +107,13 @@ fun TaskEditorPane(app: AppController, editor: Editor, defaultDate: LocalDate?, 
     }
 
     BabaCard(modifier.fillMaxWidth()) {
-        Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // Fields scroll; the Save/Cancel row below stays visible however long the form is.
+        Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(if (existing == null) "New task" else "Edit task", style = MaterialTheme.typography.titleLarge, color = Baba.colors.text)
             OutlinedTextField(form.title, { form = form.copy(title = it) }, label = { Text("Title") }, singleLine = true,
-                modifier = Modifier.fillMaxWidth().focusRequester(focus), colors = babaFieldColors(), shape = RoundedCornerShape(10.dp))
+                modifier = Modifier.fillMaxWidth().focusRequester(focus).onPreviewKeyEvent {
+                    if (it.key == Key.Enter && it.type == KeyEventType.KeyDown) { save(); true } else false
+                }, colors = babaFieldColors(), shape = RoundedCornerShape(10.dp))
             OutlinedTextField(form.description, { form = form.copy(description = it) }, label = { Text("Description (optional)") },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 70.dp), colors = babaFieldColors(), shape = RoundedCornerShape(10.dp))
 
@@ -167,20 +175,19 @@ fun TaskEditorPane(app: AppController, editor: Editor, defaultDate: LocalDate?, 
                     style = MaterialTheme.typography.bodySmall, color = Baba.colors.textMuted,
                 )
             }
-            ErrorText(errors)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                PrimaryButton(if (existing == null) "Add task" else "Save", ::save)
-                SecondaryButton("Cancel", { app.editor = null })
-                Spacer(Modifier.weight(1f))
-                if (existing != null) {
-                    SecondaryButton(if (existing.isCompleted) "Reopen" else "Complete", {
-                        app.report(if (existing.isCompleted) app.core.tasks.reopen(existing.id) else app.core.tasks.complete(existing.id))
-                        app.editor = null
-                    })
-                    SecondaryButton("Delete", { app.report(app.core.tasks.delete(existing.id), "Task deleted."); app.editor = null }, danger = true)
-                }
+        }
+        ErrorText(errors)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            PrimaryButton(if (existing == null) "Add task" else "Save", ::save)
+            SecondaryButton("Cancel", { app.editor = null })
+            Spacer(Modifier.weight(1f))
+            if (existing != null) {
+                SecondaryButton(if (existing.isCompleted) "Reopen" else "Complete", {
+                    app.report(if (existing.isCompleted) app.core.tasks.reopen(existing.id) else app.core.tasks.complete(existing.id))
+                    app.editor = null
+                })
+                SecondaryButton("Delete", { app.report(app.core.tasks.delete(existing.id), "Task deleted."); app.editor = null }, danger = true)
             }
-            Spacer(Modifier.padding(2.dp))
         }
     }
 }

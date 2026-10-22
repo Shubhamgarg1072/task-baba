@@ -16,6 +16,8 @@ dependencies {
     implementation(compose.materialIconsExtended)
     implementation(libs.coroutines.swing)
     testImplementation(libs.kotlin.test)
+    @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+    testImplementation(compose.uiTest)
     testImplementation(libs.coroutines.test)
 }
 
@@ -27,7 +29,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg)
             packageName = "Task Baba"
-            packageVersion = "1.1.0"
+            packageVersion = "1.1.1"
             description = "Get your tasks done, my child. Karma is watching."
             copyright = "© 2026 Task Baba contributors. MIT License."
             modules("java.net.http", "java.sql", "jdk.httpserver", "jdk.crypto.ec")

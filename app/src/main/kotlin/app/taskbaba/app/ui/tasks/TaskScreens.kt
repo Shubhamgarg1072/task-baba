@@ -112,11 +112,12 @@ fun TodayScreen(app: AppController) {
                 listed.forEach { r -> TaskRow(r, app, now, zone, showReasons = false) }
             }
         }
-        Column(Modifier.weight(1f).widthIn(min = 300.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            val editor = app.editor
-            if (editor != null) {
-                TaskEditorPane(app, editor, defaultDate = today)
-            } else {
+        val editor = app.editor
+        if (editor != null) {
+            // The editor scrolls itself, so it needs a bounded (non-scrolling) parent.
+            Box(Modifier.weight(1f).widthIn(min = 300.dp)) { TaskEditorPane(app, editor, defaultDate = today) }
+        } else {
+            Column(Modifier.weight(1f).widthIn(min = 300.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 ProgressCard(record.completed, record.planned, record.completionPercent, streaks.current, streaks.best, overdue, settings.dailyGoalPercent, app)
                 HealthCompactCard(app)
             }
