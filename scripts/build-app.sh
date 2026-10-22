@@ -34,6 +34,11 @@ if security find-identity -p codesigning 2>/dev/null | grep -q "\"$identity\"" \
    && codesign --force -s "$identity" "$app/Contents/MacOS/babakit" 2>/dev/null; then
   echo "==> Signing with \"$identity\""
   codesign --force --deep -s "$identity" "$app"
+  # The helper is what talks to macOS about notifications, so it carries the app's identifier and
+  # certificate (satisfying the app's designated requirement). --deep above would reset it, so it is
+  # re-signed afterwards and only the outer bundle is resealed.
+  codesign --force -s "$identity" --identifier app.taskbaba.TaskBaba "$app/Contents/MacOS/babakit"
+  codesign --force -s "$identity" "$app"
 else
   echo "==> Ad-hoc signing (run scripts/setup-signing.sh for a stable signature that keeps permissions across rebuilds)"
   codesign --force -s - "$app/Contents/MacOS/babakit"
