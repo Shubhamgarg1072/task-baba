@@ -1,5 +1,7 @@
 package app.taskbaba.app.ui.notes
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
@@ -62,7 +64,7 @@ class NotesUiTest {
 
     @Test fun createPlainNote() = runComposeUiTest {
         val s = Setup()
-        setContent { BabaTheme { NotesScreen(s.app, s.notes) } }
+        setContent { BabaTheme { NotesScreen(s.app, s.notes, NoteKind.PLAIN) } }
         onNodeWithText("New note").performClick()
         waitForIdle()
         onAllNodes(hasSetTextAction() and hasText("Title")).onFirst().performTextInput("Office Wi-Fi")
@@ -74,7 +76,7 @@ class NotesUiTest {
 
     @Test fun createSecureNoteThenItIsLockedAndUnlocksWithAuth() = runComposeUiTest {
         val s = Setup()
-        setContent { BabaTheme { NotesScreen(s.app, s.notes) } }
+        setContent { BabaTheme { NotesScreen(s.app, s.notes, NoteKind.SECURE) } }
         onNodeWithText("New secure note").performClick()
         waitForIdle()
         onAllNodes(hasSetTextAction() and hasText("Title")).onFirst().performTextInput("Bank")
@@ -100,7 +102,7 @@ class NotesUiTest {
     @Test fun cancelledAuthKeepsSecretsHidden() = runComposeUiTest {
         val s = Setup(DeviceAuthResult.CANCELLED)
         val n = s.notes.create(NoteDraft(NoteKind.SECURE, "Server", secure = SecureFields("root", "topsecret"))).getOrThrow()
-        setContent { BabaTheme { NotesScreen(s.app, s.notes) } }
+        setContent { BabaTheme { NotesScreen(s.app, s.notes, NoteKind.SECURE) } }
         onNodeWithText("Server").performClick()
         waitForIdle()
         onNodeWithText("Unlock with Touch ID").performClick()
@@ -112,20 +114,35 @@ class NotesUiTest {
         assertTrue(s.notes.readSecrets(n.id).isFailure)
     }
 
+    @Test fun eachSectionShowsOnlyItsOwnKind() = runComposeUiTest {
+        val s = Setup()
+        s.notes.create(NoteDraft(NoteKind.PLAIN, "Groceries", "dal, rice"))
+        s.notes.create(NoteDraft(NoteKind.SECURE, "Netflix", secure = SecureFields("me", "pw")))
+        var kind by androidx.compose.runtime.mutableStateOf(NoteKind.PLAIN)
+        setContent { BabaTheme { NotesScreen(s.app, s.notes, kind) } }
+        onNodeWithText("Groceries").assertExists()
+        assertTrue(onAllNodes(hasText("Netflix")).fetchSemanticsNodes().isEmpty())
+        kind = NoteKind.SECURE
+        waitForIdle()
+        onNodeWithText("Netflix").assertExists()
+        assertTrue(onAllNodes(hasText("Groceries")).fetchSemanticsNodes().isEmpty())
+    }
+
     @Test fun renderNotesScreens() {
         val s = Setup()
         s.notes.create(NoteDraft(NoteKind.PLAIN, "Sprint retro ideas", "1. Fewer meetings\n2. Chai breaks are sacred", pinned = true))
         s.notes.create(NoteDraft(NoteKind.PLAIN, "Office Wi-Fi", "Guest network — ask IT for today's code"))
         s.notes.create(NoteDraft(NoteKind.SECURE, "Jira", url = "https://example.atlassian.net", secure = SecureFields("me@example.com", "Example-Passw0rd!")))
-        s.app.screen = Screen.NOTES
+        s.notes.create(NoteDraft(NoteKind.SECURE, "Bank", url = "https://bank.example.com", secure = SecureFields("me", "Example-Passw0rd!")))
         val out = Paths.get("build", "screenshots").also { Files.createDirectories(it) }
-        for (dark in listOf(false, true)) {
+        for ((screen, kind) in listOf(Screen.NOTES to NoteKind.PLAIN, Screen.SECURE_NOTES to NoteKind.SECURE)) for (dark in listOf(false, true)) {
+            s.app.screen = screen
             ImageComposeScene(1440, 900, Density(1f)) {
-                BabaTheme(dark) { MainWindowContent(s.app, SidebarExtras()) { NotesScreen(s.app, s.notes) } }
+                BabaTheme(dark) { MainWindowContent(s.app, SidebarExtras()) { NotesScreen(s.app, s.notes, kind) } }
             }.use { scene ->
                 scene.render(0)
                 val bytes = scene.render(500_000_000).encodeToData(EncodedImageFormat.PNG)!!.bytes
-                Files.write(out.resolve("notes-${if (dark) "dark" else "light"}.png"), bytes)
+                Files.write(out.resolve("${screen.name.lowercase()}-${if (dark) "dark" else "light"}.png"), bytes)
             }
         }
     }

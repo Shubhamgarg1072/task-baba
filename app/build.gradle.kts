@@ -29,7 +29,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg)
             packageName = "Task Baba"
-            packageVersion = "1.2.0"
+            packageVersion = "1.2.1"
             description = "Get your tasks done, my child. Karma is watching."
             copyright = "© 2026 Task Baba contributors. MIT License."
             modules("java.net.http", "java.sql", "jdk.httpserver", "jdk.crypto.ec")

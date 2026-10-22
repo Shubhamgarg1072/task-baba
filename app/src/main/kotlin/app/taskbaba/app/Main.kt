@@ -37,6 +37,7 @@ import app.taskbaba.core.data.KvStore
 import app.taskbaba.core.integrations.FollowUpTaskCreator
 import app.taskbaba.core.integrations.InboxResponseOutcome
 import app.taskbaba.core.integrations.IntegrationsModule
+import app.taskbaba.core.notes.NoteKind
 import app.taskbaba.core.notes.NotesService
 import app.taskbaba.app.ui.notes.NotesScreen
 import app.taskbaba.core.platform.NotificationResponse
@@ -156,6 +157,7 @@ fun main() {
                     listOf(Screen.TODAY, Screen.UPCOMING, Screen.OVERDUE, Screen.COMPLETED, Screen.ALL, Screen.INBOX, Screen.HEALTH, Screen.NOTES, Screen.REVIEW)
                         .forEachIndexed { i, s -> Item(s.title, shortcut = KeyShortcut(Key.Companion.number(i + 1), meta = true), onClick = { app.open(s) }) }
                     Separator()
+                    Item("Secure Notes", onClick = { app.open(Screen.SECURE_NOTES) })
                     Item("AI & Model", onClick = { app.open(Screen.AI) })
                     Item("Settings…", shortcut = KeyShortcut(Key.Comma, meta = true), onClick = { app.open(Screen.SETTINGS) })
                 }
@@ -173,7 +175,8 @@ fun main() {
                         Screen.UPCOMING, Screen.OVERDUE, Screen.COMPLETED, Screen.ALL -> TaskListScreen(app, screen)
                         Screen.INBOX -> InboxScreen(container.integrations, app::openUrl, rememberTasks(app), onOpenSettings = { app.open(Screen.SETTINGS) })
                         Screen.HEALTH -> HealthScreen(app)
-                        Screen.NOTES -> NotesScreen(app, container.notes)
+                        Screen.NOTES -> NotesScreen(app, container.notes, NoteKind.PLAIN)
+                        Screen.SECURE_NOTES -> NotesScreen(app, container.notes, NoteKind.SECURE)
                         Screen.REVIEW -> ReviewScreen(app)
                         Screen.AI -> AiScreen(container.ai)
                         Screen.SETTINGS -> SettingsScreen(app) { IntegrationsSettings(container.integrations) }

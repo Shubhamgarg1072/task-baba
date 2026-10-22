@@ -30,6 +30,7 @@ enum class Screen(val title: String, val view: TaskView? = null) {
     INBOX("Smart Inbox"),
     HEALTH("Health"),
     NOTES("Notes"),
+    SECURE_NOTES("Secure Notes"),
     REVIEW("Daily Review"),
     AI("AI & Model"),
     SETTINGS("Settings"),

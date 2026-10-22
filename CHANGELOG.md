@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1 — 2026-10-22
+
+- Notes are now two sidebar sections: **Notes** for simple notes and **Secure Notes** for Keychain-protected logins and secrets (View menu → Secure Notes, too).
+
 ## 1.2.0 — 2026-10-22
 
 - **Notes**: a new sidebar section for quick notes — search, pin, optional link.

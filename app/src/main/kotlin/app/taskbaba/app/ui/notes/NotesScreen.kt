@@ -80,35 +80,36 @@ private sealed interface NoteSelection {
 }
 
 @Composable
-fun NotesScreen(app: AppController, notes: NotesService) {
+/** One section per kind: [NoteKind.PLAIN] for simple notes, [NoteKind.SECURE] for Keychain-protected ones. */
+fun NotesScreen(app: AppController, notes: NotesService, kind: NoteKind) {
     val all by notes.observe().collectAsState(initial = notes.all())
-    var query by remember { mutableStateOf("") }
-    var filter by remember { mutableStateOf<NoteKind?>(null) }
-    var selection by remember { mutableStateOf<NoteSelection?>(null) }
-    val shown = notes.search(all, query, filter)
+    var query by remember(kind) { mutableStateOf("") }
+    var selection by remember(kind) { mutableStateOf<NoteSelection?>(null) }
+    val ofKind = all.filter { it.kind == kind }
+    val shown = notes.search(ofKind, query, kind)
+    val secure = kind == NoteKind.SECURE
 
     Row(Modifier.fillMaxSize().padding(28.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
         Column(Modifier.weight(1f).widthIn(min = 300.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ScreenHeader("Notes", "Notes stay on this Mac. Secure notes keep their secrets in the macOS Keychain.")
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PrimaryButton("New note", { selection = NoteSelection.New(NoteKind.PLAIN) })
-                SecondaryButton("New secure note", { selection = NoteSelection.New(NoteKind.SECURE) })
+            ScreenHeader(
+                if (secure) "Secure Notes" else "Notes",
+                if (secure) "Logins and secrets, kept in the macOS Keychain and unlocked with Touch ID." else "Simple notes, saved on this Mac.",
+            ) {
+                PrimaryButton(if (secure) "New secure note" else "New note", { selection = NoteSelection.New(kind) })
             }
             OutlinedTextField(
-                query, { query = it }, singleLine = true, placeholder = { Text("Search titles, websites and notes", color = Baba.colors.textMuted) },
+                query, { query = it }, singleLine = true, placeholder = { Text(if (secure) "Search titles and websites" else "Search notes", color = Baba.colors.textMuted) },
                 leadingIcon = { Icon(Icons.Outlined.Search, null, tint = Baba.colors.textMuted) },
                 modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = babaFieldColors(),
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                SmallChip("All", filter == null) { filter = null }
-                SmallChip("Notes", filter == NoteKind.PLAIN) { filter = NoteKind.PLAIN }
-                SmallChip("Secure", filter == NoteKind.SECURE) { filter = NoteKind.SECURE }
-            }
             BabaCard(Modifier.weight(1f), padding = 6.dp) {
                 if (shown.isEmpty()) {
                     Text(
-                        if (all.isEmpty()) "No notes yet. Jot something down, or save a login as a secure note."
-                        else "No notes match.",
+                        when {
+                            ofKind.isNotEmpty() -> "No notes match."
+                            secure -> "No secure notes yet. Save a login, a PIN or recovery codes here."
+                            else -> "No notes yet. Press New note and start writing."
+                        },
                         Modifier.padding(12.dp), style = MaterialTheme.typography.bodyMedium, color = Baba.colors.textMuted,
                     )
                 }
@@ -121,7 +122,12 @@ fun NotesScreen(app: AppController, notes: NotesService) {
         }
         Box(Modifier.weight(1.3f).widthIn(min = 360.dp)) {
             when (val sel = selection) {
-                null -> BabaCard {
+                null -> if (!secure) BabaCard {
+                    Text(
+                        "Pick a note on the left, or press New note. Simple notes are stored unencrypted on this Mac — keep passwords in Secure Notes.",
+                        style = MaterialTheme.typography.bodyMedium, color = Baba.colors.textMuted,
+                    )
+                } else BabaCard {
                     SectionTitle("How secure notes work")
                     Text(
                         "• Username, password and secret text are stored only in the macOS Keychain — never in Task Baba's database.\n" +
