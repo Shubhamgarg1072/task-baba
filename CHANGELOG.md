@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1 — 2026-10-22
+
+- **Fixed: "New task" didn't work on the Today screen.** The editor opened inside a scrolling column and crashed during layout, so no task could be added from it. The editor now has its own bounded area.
+- The Add task / Save / Cancel buttons are pinned below the form, so they're always visible; pressing Enter in the title saves.
+- Added UI tests that click through adding a task (Today, All Tasks, quick add, Enter to save, empty-title error).
+
 ## 1.1.0 — 2026-10-21
 
 - **Animated Baba**: a new poseable rig (head, eyes, brows, mouth, IK arms, props, effects) and 40 keyframed animations, each triggered by its matching event — water, eye, stretch, walk, meal and rest breaks; task created, chosen, done, due soon, overdue and postponed; greetings, day summaries and returning from a break.

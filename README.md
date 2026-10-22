@@ -138,7 +138,7 @@ Items are classified **Critical / High / Normal / Low / Noise** by your rules fi
 ## Testing
 
 ```bash
-./gradlew test                                  # 147 JVM tests
+./gradlew test                                  # 152 JVM tests
 python3 cloud/proxy/test_taskbaba_proxy.py      # proxy auth/limits tests
 ```
 
