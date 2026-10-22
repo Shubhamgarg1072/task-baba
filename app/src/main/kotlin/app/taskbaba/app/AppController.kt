@@ -44,6 +44,11 @@ sealed interface Editor {
 /** UI-level state for the windows. Business rules stay in [BabaCore]. */
 private const val BUNDLE_ID = "app.taskbaba.TaskBaba"
 
+data class FloatingNotice(val title: String, val body: String, val at: java.time.Instant) {
+    /** A notice is shown for a few minutes; after that Floating Baba goes back to his own lines. */
+    fun isFresh(now: java.time.Instant) = java.time.Duration.between(at, now) < java.time.Duration.ofMinutes(5)
+}
+
 enum class LinkRoute { BROWSER, SYSTEM_OPEN, REFUSED }
 
 /**
@@ -77,6 +82,33 @@ class AppController(
         private set
 
     val settings: AppSettings get() = core.settings.value
+
+    /** Floating Baba closed with ×; he comes back on the next notification. Not persisted. */
+    var floatingDismissed by mutableStateOf(false)
+        private set
+    /** The latest notification, shown on Floating Baba when he pops back up. */
+    var floatingNotice by mutableStateOf<FloatingNotice?>(null)
+        private set
+
+    fun onNotificationPosted(n: app.taskbaba.core.platform.BabaNotification, now: java.time.Instant = java.time.Instant.now()) {
+        floatingNotice = FloatingNotice(n.title, n.body, now)
+        floatingDismissed = false
+    }
+
+    fun dismissFloating() {
+        floatingDismissed = true
+        floatingNotice = null
+    }
+
+    /** Menu bar / menu checkbox: show (re-enabling the setting if needed) or turn the feature off. */
+    fun setFloatingVisible(visible: Boolean) {
+        if (visible) {
+            if (!core.settings.value.floatingMonk) core.updateSettings { it.copy(floatingMonk = true) }
+            floatingDismissed = false
+        } else core.updateSettings { it.copy(floatingMonk = false) }
+    }
+
+    fun isFloatingVisible(s: AppSettings = core.settings.value) = s.floatingMonk && !floatingDismissed
 
     /** Extra cleanup run by Settings → Reset all data (e.g. notes and their Keychain items). */
     val resetHooks = mutableListOf<() -> Unit>()

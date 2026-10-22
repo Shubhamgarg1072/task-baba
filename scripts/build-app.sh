@@ -27,10 +27,19 @@ fi
 echo "==> Compiling native helper (babakit)"
 native/build.sh "$app/Contents/MacOS/babakit" >/dev/null
 
-echo "==> Ad-hoc signing"
-codesign --force -s - "$app/Contents/MacOS/babakit"
-codesign --force --deep -s - "$app"
-codesign --verify --deep --strict "$app"
+# A stable identity (scripts/setup-signing.sh) keeps the app's signature the same across rebuilds, so macOS
+# remembers notification and Keychain permissions. Without it we fall back to ad-hoc signing.
+identity="Task Baba Local Signing"
+if security find-identity -p codesigning 2>/dev/null | grep -q "\"$identity\"" \
+   && codesign --force -s "$identity" "$app/Contents/MacOS/babakit" 2>/dev/null; then
+  echo "==> Signing with \"$identity\""
+  codesign --force --deep -s "$identity" "$app"
+else
+  echo "==> Ad-hoc signing (run scripts/setup-signing.sh for a stable signature that keeps permissions across rebuilds)"
+  codesign --force -s - "$app/Contents/MacOS/babakit"
+  codesign --force --deep -s - "$app"
+fi
+codesign --verify --deep --strict "$app" 2>/dev/null || codesign --verify --deep "$app"
 
 echo "==> Checking helper inside bundle"
 "$app/Contents/MacOS/babakit" version

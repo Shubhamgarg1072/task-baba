@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 — 2026-10-22
+
+- **Floating Baba close button**: × hides him until the next notification; he pops back up automatically showing that notification's title and message (health breaks, deadlines, end-of-day summary, Smart Inbox, test). The menu bar checkbox shows and hides him. Turning Floating Baba off in Settings still keeps him off.
+- **System Settings links open System Settings**, not the browser (Open System Settings now goes straight to Task Baba's notification settings).
+- **Stable local signing**: `scripts/setup-signing.sh` creates a local code-signing certificate; `scripts/build-app.sh` uses it when available so notification and Keychain permissions survive rebuilds (falls back to ad-hoc otherwise).
+
 ## 1.2.2 — 2026-10-22
 
 - **Fixed: misleading "native notifications aren't available" message.** When macOS refuses the permission request (UNErrorDomain 1 — it happens to apps built and ad-hoc signed on your own Mac after a rebuild, or when the app wasn't opened from Finder/Dock), Task Baba now says so and explains the fix: quit, open it from Finder or the Dock, and press Allow again.

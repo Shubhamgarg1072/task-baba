@@ -14,6 +14,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import app.taskbaba.app.platform.MacBridge
+import app.taskbaba.app.platform.ObservedNotifier
 import app.taskbaba.app.ui.screens.AiScreen
 import app.taskbaba.app.ui.screens.InboxScreen
 import app.taskbaba.app.ui.screens.IntegrationsSettings
@@ -59,14 +60,16 @@ import kotlin.system.exitProcess
 /** Everything the windows need, created once at startup. */
 class AppContainer(val scope: CoroutineScope) {
     val bridge: MacBridge = MacBridge(scope)
+    /** Every notification goes through this, so Floating Baba can pop up when one is delivered. */
+    val notifier: ObservedNotifier = ObservedNotifier(bridge.notifier)
     val db: app.taskbaba.db.TaskBabaDatabase = DatabaseFactory.file()
     private val kv: KvStore = KvStore(db)
     val ai: AiModule = AiModule(kv, bridge.secrets, scope, openBrowser = { url -> openExternal(url) })
-    val core: BabaCore = BabaCore(db, bridge.notifier, monkAi = ai.router)
+    val core: BabaCore = BabaCore(db, notifier, monkAi = ai.router)
     val app: AppController = AppController(core, bridge, scope)
     val notes: NotesService = NotesService(db, bridge.secrets, bridge.deviceAuth, secretsPersistent = { bridge.secrets.isPersistent })
     val integrations: IntegrationsModule = IntegrationsModule(
-        db, kv, bridge.secrets, bridge.notifier,
+        db, kv, bridge.secrets, notifier,
         FollowUpTaskCreator { draft -> core.tasks.create(draft) },
         settingsProvider = { core.settings.value }, scope = scope, openBrowser = { url -> openExternal(url) },
     )
@@ -79,6 +82,7 @@ class AppContainer(val scope: CoroutineScope) {
         app.start()
         core.greet()
         scope.launch { bridge.notifier.responses.collect(::onNotificationResponse) }
+        scope.launch { notifier.posted.collect { app.onNotificationPosted(it) } }
     }
 
     private fun onNotificationResponse(r: NotificationResponse) {
@@ -162,7 +166,7 @@ fun main() {
                     Item("Settings…", shortcut = KeyShortcut(Key.Comma, meta = true), onClick = { app.open(Screen.SETTINGS) })
                 }
                 Menu("Baba") {
-                    CheckboxItem("Floating Baba", settings.floatingMonk, onCheckedChange = { v -> app.core.updateSettings { it.copy(floatingMonk = v) } })
+                    CheckboxItem("Floating Baba", app.isFloatingVisible(settings), onCheckedChange = { v -> app.setFloatingVisible(v) })
                     CheckboxItem("Mute Baba", settings.monkMuted, onCheckedChange = { v -> app.core.updateSettings { it.copy(monkMuted = v) } })
                     Item("Pause reminders for 1 hour", onClick = { app.core.pauseAll(Duration.ofHours(1)) })
                     Item("Send test notification", onClick = { app.sendTestNotification() })

@@ -1,6 +1,13 @@
 package app.taskbaba.app.ui.shell
 
 import androidx.compose.foundation.background
+import app.taskbaba.core.monk.MonkLine
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -120,7 +127,7 @@ fun ApplicationScope.BabaTray(app: AppController, aiStatus: String?, inboxCount:
             if (inboxCount > 0) Item("Smart Inbox: $inboxCount new", onClick = { app.open(Screen.INBOX) })
             aiStatus?.let { Item("AI: $it", enabled = false, onClick = {}) }
             Separator()
-            CheckboxItem("Floating Baba", checked = settings.floatingMonk, onCheckedChange = { v -> app.core.updateSettings { it.copy(floatingMonk = v) } })
+            CheckboxItem("Floating Baba", checked = app.isFloatingVisible(settings), onCheckedChange = { v -> app.setFloatingVisible(v) })
             CheckboxItem("Mute Baba", checked = settings.monkMuted, onCheckedChange = { v -> app.core.updateSettings { it.copy(monkMuted = v) } })
             Item("Open Task Baba", onClick = { app.open(Screen.TODAY) })
             Item("Settings…", onClick = { app.open(Screen.SETTINGS) })
@@ -154,7 +161,7 @@ fun QuickAddWindow(app: AppController, dark: Boolean) {
 @Composable
 fun FloatingMonk(app: AppController, dark: Boolean) {
     val settings by app.core.settings.state.collectAsState()
-    if (!settings.floatingMonk) return
+    if (!app.isFloatingVisible(settings)) return
     val size = DpSize(310.dp, 130.dp)
     val start = remember { clampedPosition(settings.floatingMonkX, settings.floatingMonkY, 310, 130) }
     val state = rememberWindowState(size = size, position = start)
@@ -172,22 +179,38 @@ fun FloatingMonk(app: AppController, dark: Boolean) {
         alwaysOnTop = true, focusable = false,
     ) {
         BabaTheme(dark, reduceMotion = app.reduceMotion(settings)) {
-            WindowDraggableArea {
-                Row(
-                    Modifier.fillMaxSize().padding(6.dp).clip(RoundedCornerShape(16.dp))
-                        .background(Baba.colors.card.copy(alpha = 0.97f))
-                        .border(1.dp, Baba.colors.cardBorder, RoundedCornerShape(16.dp))
-                        .clickable { app.open(Screen.TODAY) }
-                        .padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    AnimatedBaba(line, 84.dp, settings.animationFps)
-                    Spacer(Modifier.width(10.dp))
-                    Box(Modifier.weight(1f)) {
-                        Text(line.text, style = MaterialTheme.typography.bodySmall, color = Baba.colors.text, maxLines = 5)
-                    }
+            WindowDraggableArea { FloatingMonkContent(app, line, settings.animationFps) }
+        }
+    }
+}
+
+/** The card inside Floating Baba: the latest notification (if fresh) or Baba's line, plus a × to hide him. */
+@Composable
+fun FloatingMonkContent(app: AppController, line: MonkLine, fps: Int) {
+    val now by app.core.nowFlow.collectAsState()
+    val notice = app.floatingNotice?.takeIf { it.isFresh(now) }
+    Box(
+        Modifier.fillMaxSize().padding(6.dp).clip(RoundedCornerShape(16.dp))
+            .background(Baba.colors.card.copy(alpha = 0.97f))
+            .border(1.dp, Baba.colors.cardBorder, RoundedCornerShape(16.dp)),
+    ) {
+        Row(
+            Modifier.fillMaxSize().clickable { app.open(if (notice != null) Screen.TODAY else app.screen) }.padding(start = 10.dp, top = 10.dp, bottom = 10.dp, end = 30.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AnimatedBaba(line, 84.dp, fps)
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                if (notice != null) {
+                    Text(notice.title, style = MaterialTheme.typography.titleSmall, color = Baba.colors.saffron, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(notice.body, style = MaterialTheme.typography.bodySmall, color = Baba.colors.text, maxLines = 4, overflow = TextOverflow.Ellipsis)
+                } else {
+                    Text(line.text, style = MaterialTheme.typography.bodySmall, color = Baba.colors.text, maxLines = 5, overflow = TextOverflow.Ellipsis)
                 }
             }
+        }
+        IconButton(onClick = { app.dismissFloating() }, modifier = Modifier.align(Alignment.TopEnd).padding(2.dp).size(26.dp)) {
+            Icon(Icons.Filled.Close, "Hide Floating Baba until the next notification", tint = Baba.colors.textMuted, modifier = Modifier.size(16.dp))
         }
     }
 }

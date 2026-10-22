@@ -25,7 +25,7 @@ Task Baba is a native-feeling macOS productivity and health companion with a fun
 - **Animated Baba** — a poseable, original character with **40 animations**: he drinks water at water breaks, rests his eyes, stretches, walks, eats, sips chai, taps his watch when a deadline nears, facepalms after the fourth postponement, dances when an important task is done and throws confetti when all priorities are finished. Between events he breathes, blinks, lip-syncs new lines, looks around, counts mala beads, and dozes off late at night. Smoothness is selectable (30 / 40 / 60 fps, default 40); reduced motion shows each move's key pose instead. Preview every move in **Settings → Baba's moves**.
 - **Notes** and **Secure Notes** — two sidebar sections. **Notes** holds simple local notes (searchable, pinnable, with a link). **Secure Notes** is for logins and credentials: the username, password and secret text are stored only in the **macOS Keychain** (never in Task Baba's database), viewing or editing them asks for **Touch ID or your Mac password** and stays unlocked for 2 minutes, copied passwords are wiped from the clipboard after 30 seconds, and there's a strong-password generator. Notes are never sent to AI, shown in notifications or logged. (For critical accounts, a dedicated password manager with sync and breach alerts is still the safer home.)
 - **Menu bar companion** — today's progress, top priorities (click to complete), quick add, next reminder, snooze controls, AI status, floating-Baba toggle, open window, quit. The app keeps running when the window is closed.
-- **Floating Baba** (optional) — small always-on-top window, draggable, never steals keyboard focus, remembers its position, clamps to connected displays, respects reduced motion.
+- **Floating Baba** (optional) — small always-on-top window with a × to hide him until the next notification (he pops back up showing it), draggable, never steals keyboard focus, remembers its position, clamps to connected displays, respects reduced motion.
 - **Daily review & stats** — planned vs completed, completion %, overdue count, Critical/High completion, MIT, current and best streak, health actions confirmed vs reminders shown, 7-day view, history (deletable), and Baba's end-of-day summary. Finished days are frozen into history at rollover; nothing is deleted by the daily reset.
 - **Smart Inbox** (optional) — official-API integrations with **Jira Cloud**, **Slack** and **Microsoft 365** (Teams chats, Outlook mail, Calendar) classified by deterministic rules, with focus sessions, digests and follow-up-task creation. See [Notification integrations](#notification-integrations).
 - **Optional AI** — Baba's in-app lines can be rewritten by **your own model, stored in your Google Drive and run in Google Colab**. Without it (or offline) he uses his built-in library. See [AI: Google Drive + Colab](#ai-google-drive--colab).
@@ -45,7 +45,8 @@ git clone https://github.com/Shubhamgarg1072/task-baba.git
 cd task-baba
 
 ./gradlew test                 # unit tests (core + app)
-scripts/build-app.sh           # builds and ad-hoc signs "Task Baba.app"
+scripts/setup-signing.sh       # once: local signing certificate so permissions survive rebuilds (asks for your Mac password)
+scripts/build-app.sh           # builds and signs "Task Baba.app"
 open "app/build/compose/binaries/main/app/Task Baba.app"
 ```
 
@@ -142,7 +143,7 @@ Items are classified **Critical / High / Normal / Low / Noise** by your rules fi
 ## Testing
 
 ```bash
-./gradlew test                                  # 167 JVM tests
+./gradlew test                                  # 174 JVM tests
 python3 cloud/proxy/test_taskbaba_proxy.py      # proxy auth/limits tests
 ```
 
